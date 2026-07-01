@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/editTituloNota"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Título da Nota" />
+
+    <EditText
+        android:id="@+id/editTextoNota"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Escreva sua nota aqui..."
+        android:minLines="3" />
+
+    <Button
+        android:id="@+id/btnSalvarNota"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Salvar Nota" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Minhas Notas Salvas:"
+        android:textStyle="bold"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="10dp"/>
+
+    <ListView
+        android:id="@+id/listViewNotas"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+</LinearLayout>
