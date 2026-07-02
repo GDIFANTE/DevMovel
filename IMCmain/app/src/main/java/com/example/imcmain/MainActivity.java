@@ -25,22 +25,22 @@ public class MainActivity extends AppCompatActivity {
             String strPeso = editPeso.getText().toString();
             String strAltura = editAltura.getText().toString();
 
-            // Validação simples para não quebrar o app
+            // Evita que o app quebre se clicar sem digitar nada
             if (strPeso.isEmpty() || strAltura.isEmpty()) {
-                Toast.makeText(this, "Preencha todos os campos!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Preencha o peso e a altura!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Criamos a Intent para mudar da MainActivity para a ResultadoActivity
+            // Intenção de ir para a outra tela
             Intent intent = new Intent(MainActivity.this, ResultadoActivity.class);
 
-            // Criamos o Bundle (a nossa "mala" de dados)
-            Bundle dados = new Bundle();
-            dados.putString("pesoDigitado", strPeso);
-            dados.putString("alturaDigitada", strAltura);
+            // Cria a malinha (Bundle) e coloca os textos dentro com chaves identificadoras
+            Bundle pacoteDados = new Bundle();
+            pacoteDados.putString("chavePeso", strPeso);
+            pacoteDados.putString("chaveAltura", strAltura);
 
-            // Colocamos a mala dentro da Intent e iniciamos a nova tela
-            intent.putExtras(dados);
+            // Amarra a mala na intent e inicia a próxima activity
+            intent.putExtras(pacoteDados);
             startActivity(intent);
         });
     }

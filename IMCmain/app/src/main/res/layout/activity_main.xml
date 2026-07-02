@@ -9,8 +9,8 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Calculadora de IMC"
-        android:textSize="24sp"
+        android:text="Cálculo de IMC (Dois Campos)"
+        android:textSize="22sp"
         android:textStyle="bold"
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="30dp"/>
@@ -19,7 +19,7 @@
         android:id="@+id/editPeso"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Peso (ex: 80)"
+        android:hint="Peso em kg (ex: 80)"
         android:inputType="numberDecimal"
         android:layout_marginBottom="15dp"/>
 
@@ -27,7 +27,7 @@
         android:id="@+id/editAltura"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Altura (ex: 1.80)"
+        android:hint="Altura em metros (ex: 1.80)"
         android:inputType="numberDecimal"
         android:layout_marginBottom="30dp"/>
 
