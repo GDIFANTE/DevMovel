@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
         listaContatos.add("Sabrina");
         listaContatos.add("Ana Maria");
         listaContatos.add("Carlos Eduardo");
+        listaContatos.add("Joselito");
 
         // 2. Inicializa o ArrayAdapter
         // Parâmetros: (Contexto, Layout padrão de linha do Android, Nossa lista de dados)
