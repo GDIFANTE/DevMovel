@@ -1,0 +1,24 @@
+<resources>
+
+    <string name="app_name">ErgoPeritus</string>
+    <string name="ergo">Ergo</string>
+    <string name="peritus">Peritus</string>
+    <string name="app_subtitle">Ergonomic Assessment Tool</string>
+
+    <string name="logo_description">Ícone do ErgoPeritus</string>
+
+    <string name="email_label">E-mail</string>
+    <string name="email_hint">seu@email.com</string>
+
+    <string name="password_label">Senha</string>
+    <string name="password_hint">Digite sua senha</string>
+
+    <string name="login_button">Entrar</string>
+    <string name="forgot_password">Esqueci minha senha</string>
+
+    <string name="email_required">Informe seu e-mail</string>
+    <string name="email_invalid">Informe um e-mail válido</string>
+    <string name="password_required">Informe sua senha</string>
+    <string name="password_short">A senha deve possuir pelo menos 6 caracteres</string>
+
+</resources>
