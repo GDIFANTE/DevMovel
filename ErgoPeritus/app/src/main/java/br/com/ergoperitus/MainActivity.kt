@@ -26,10 +26,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /*
-     * Abre a tela de cadastro e aguarda o resultado.
-     *
-     * Quando o cadastro for concluído, o e-mail informado
-     * será colocado automaticamente no campo de login.
+     * Abre o cadastro e aguarda o usuário concluí-lo.
      */
     private val abrirTelaCadastro = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -66,9 +63,6 @@ class MainActivity : AppCompatActivity() {
             validarLogin()
         }
 
-        /*
-         * Abre a nova tela de cadastro.
-         */
         binding.tvCadastrar.setOnClickListener {
             val intent = Intent(
                 this,
@@ -81,7 +75,7 @@ class MainActivity : AppCompatActivity() {
         binding.tvForgotPassword.setOnClickListener {
             Toast.makeText(
                 this,
-                "A recuperação de senha será implementada na próxima etapa.",
+                "A recuperação de senha será implementada posteriormente.",
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -225,8 +219,7 @@ class MainActivity : AppCompatActivity() {
     ) {
         /*
          * O login ainda é uma simulação.
-         * Posteriormente, e-mail e senha serão enviados
-         * para o Firebase ou para uma API.
+         * Depois será substituído pelo serviço de autenticação.
          */
         if (email.isNotEmpty() && senha.isNotEmpty()) {
             oferecerAtivacaoDaBiometria()
@@ -277,16 +270,22 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
+    /*
+     * Abre o HUB depois do login com senha
+     * ou da autenticação biométrica.
+     */
     private fun entrarNoAplicativo() {
-        Toast.makeText(
+        val intent = Intent(
             this,
-            "Login realizado com sucesso.",
-            Toast.LENGTH_SHORT
-        ).show()
+            HubActivity::class.java
+        )
+
+        startActivity(intent)
 
         /*
-         * A tela principal do aplicativo será aberta aqui
-         * quando ela for criada.
+         * Fecha a tela de login para que o botão Voltar
+         * não retorne ao login depois da autenticação.
          */
+        finish()
     }
 }

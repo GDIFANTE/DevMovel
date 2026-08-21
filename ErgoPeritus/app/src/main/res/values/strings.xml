@@ -1,6 +1,6 @@
 <resources>
 
-    <!-- Informações gerais do aplicativo. -->
+    <!-- Informações gerais. -->
     <string name="app_name">ErgoPeritus</string>
     <string name="ergo">Ergo</string>
     <string name="peritus">Peritus</string>
@@ -33,7 +33,7 @@
     <string name="already_registered">Já possui cadastro?</string>
     <string name="return_login">Entrar</string>
 
-    <!-- Mensagens de validação de cadastro. -->
+    <!-- Validação de cadastro e login. -->
     <string name="name_required">Informe seu nome completo</string>
     <string name="name_short">O nome deve possuir pelo menos 3 caracteres</string>
 
@@ -45,5 +45,38 @@
 
     <string name="confirm_password_required">Confirme sua senha</string>
     <string name="passwords_different">As senhas não são iguais</string>
+
+    <!-- Tela HUB. -->
+    <string name="hub_app_description">Avaliação Ergonômica</string>
+    <string name="hub_question">O que deseja fazer?</string>
+    <string name="hub_instruction">Selecione uma das opções para continuar</string>
+
+    <string name="new_evaluation_button">Nova avaliação</string>
+    <string name="new_evaluation_description">Iniciar uma avaliação ergonômica</string>
+
+    <string name="continue_evaluation_button">Continuar avaliação</string>
+    <string name="continue_evaluation_description">Retomar uma avaliação em andamento</string>
+
+    <string name="history_button">Histórico</string>
+    <string name="history_description">Consultar avaliações finalizadas</string>
+
+    <string name="last_activity_title">Última atividade</string>
+    <string name="no_activity_title">Nenhuma avaliação registrada</string>
+    <string name="no_activity_description">Suas avaliações aparecerão aqui</string>
+
+    <string name="user_button_description">Abrir menu do usuário</string>
+    <string name="menu_my_profile">Meu cadastro</string>
+    <string name="menu_logout">Sair</string>
+
+    <string name="profile_coming_soon">A edição do cadastro será implementada posteriormente.</string>
+
+    <string name="new_evaluation_coming_soon">A tela de nova avaliação será criada na próxima etapa.</string>
+    <string name="no_evaluation_in_progress">Nenhuma avaliação em andamento.</string>
+    <string name="history_coming_soon">O histórico será implementado posteriormente.</string>
+
+    <string name="logout_title">Sair do ErgoPeritus?</string>
+    <string name="logout_message">A entrada por biometria será desativada e será necessário informar e-mail e senha novamente.</string>
+    <string name="logout_confirm">Sair</string>
+    <string name="cancel">Cancelar</string>
 
 </resources>
