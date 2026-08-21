@@ -1,12 +1,13 @@
 <resources>
 
+    <!-- Informações gerais do aplicativo. -->
     <string name="app_name">ErgoPeritus</string>
     <string name="ergo">Ergo</string>
     <string name="peritus">Peritus</string>
     <string name="app_subtitle">Ergonomic Assessment Tool</string>
-
     <string name="logo_description">Ícone do ErgoPeritus</string>
 
+    <!-- Tela de login. -->
     <string name="email_label">E-mail</string>
     <string name="email_hint">seu@email.com</string>
 
@@ -15,10 +16,34 @@
 
     <string name="login_button">Entrar</string>
     <string name="forgot_password">Esqueci minha senha</string>
+    <string name="no_account">Ainda não possui cadastro?</string>
+    <string name="register_link">Cadastre-se</string>
+
+    <!-- Tela de cadastro. -->
+    <string name="register_title">Criar conta</string>
+    <string name="register_subtitle">Cadastre-se para utilizar o ErgoPeritus</string>
+
+    <string name="name_label">Nome completo</string>
+    <string name="name_hint">Digite seu nome completo</string>
+
+    <string name="confirm_password_label">Confirmar senha</string>
+    <string name="confirm_password_hint">Digite novamente sua senha</string>
+
+    <string name="register_button">Cadastrar</string>
+    <string name="already_registered">Já possui cadastro?</string>
+    <string name="return_login">Entrar</string>
+
+    <!-- Mensagens de validação de cadastro. -->
+    <string name="name_required">Informe seu nome completo</string>
+    <string name="name_short">O nome deve possuir pelo menos 3 caracteres</string>
 
     <string name="email_required">Informe seu e-mail</string>
     <string name="email_invalid">Informe um e-mail válido</string>
+
     <string name="password_required">Informe sua senha</string>
     <string name="password_short">A senha deve possuir pelo menos 6 caracteres</string>
+
+    <string name="confirm_password_required">Confirme sua senha</string>
+    <string name="passwords_different">As senhas não são iguais</string>
 
 </resources>
