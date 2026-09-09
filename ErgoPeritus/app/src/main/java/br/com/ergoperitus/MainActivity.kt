@@ -9,38 +9,42 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import br.com.ergoperitus.dados.ErgoPeritusDatabase
+import br.com.ergoperitus.dados.Usuario
 import br.com.ergoperitus.databinding.ActivityMainBinding
+import br.com.ergoperitus.seguranca.ProtecaoSenha
+import br.com.ergoperitus.seguranca.SessaoUsuario
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var biometricPrompt: BiometricPrompt
     private lateinit var promptInfo: BiometricPrompt.PromptInfo
+    private lateinit var sessao: SessaoUsuario
 
-    private val preferencias by lazy {
-        getSharedPreferences(
-            "seguranca_ergo_peritus",
-            MODE_PRIVATE
-        )
+    private val usuarioDao by lazy {
+        ErgoPeritusDatabase.obter(applicationContext).usuarioDao()
     }
 
-    /*
-     * Abre o cadastro e aguarda o usuário concluí-lo.
-     */
     private val abrirTelaCadastro = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { resultado ->
-
         if (resultado.resultCode == RESULT_OK) {
             val emailCadastrado = resultado.data
-                ?.getStringExtra("email_cadastrado")
+                ?.getStringExtra(CadastroActivity.EXTRA_EMAIL_CADASTRADO)
 
             binding.etEmail.setText(emailCadastrado)
+            binding.etPassword.requestFocus()
 
             Toast.makeText(
                 this,
-                "Cadastro concluído. Digite sua senha para entrar.",
+                R.string.register_complete_login,
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -52,33 +56,105 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        sessao = SessaoUsuario(applicationContext)
+
         configurarBiometria()
         configurarEventos()
         verificarBiometriaAoAbrir()
     }
 
     private fun configurarEventos() {
-
         binding.btnEntrar.setOnClickListener {
-            validarLogin()
+            validarFormularioLogin()
         }
 
         binding.tvCadastrar.setOnClickListener {
-            val intent = Intent(
-                this,
-                CadastroActivity::class.java
+            abrirTelaCadastro.launch(
+                Intent(this, CadastroActivity::class.java)
             )
-
-            abrirTelaCadastro.launch(intent)
         }
 
         binding.tvForgotPassword.setOnClickListener {
             Toast.makeText(
                 this,
-                "A recuperação de senha será implementada posteriormente.",
-                Toast.LENGTH_SHORT
+                R.string.password_recovery_later,
+                Toast.LENGTH_LONG
             ).show()
         }
+    }
+
+    private fun validarFormularioLogin() {
+        val email = binding.etEmail.text
+            .toString()
+            .trim()
+            .lowercase(Locale.ROOT)
+        val senha = binding.etPassword.text.toString()
+
+        binding.tilEmail.error = null
+        binding.tilPassword.error = null
+
+        var formularioValido = true
+
+        if (email.isEmpty()) {
+            binding.tilEmail.error = getString(R.string.email_required)
+            formularioValido = false
+        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            binding.tilEmail.error = getString(R.string.email_invalid)
+            formularioValido = false
+        }
+
+        if (senha.isEmpty()) {
+            binding.tilPassword.error = getString(R.string.password_required)
+            formularioValido = false
+        } else if (senha.length < 6) {
+            binding.tilPassword.error = getString(R.string.password_short)
+            formularioValido = false
+        }
+
+        if (formularioValido) {
+            realizarLogin(email, senha)
+        }
+    }
+
+    private fun realizarLogin(email: String, senha: String) {
+        binding.btnEntrar.isEnabled = false
+
+        lifecycleScope.launch {
+            try {
+                val usuario = usuarioDao.buscarPorEmail(email)
+
+                val credenciaisCorretas = usuario != null &&
+                    withContext(Dispatchers.Default) {
+                        ProtecaoSenha.corresponde(
+                            senhaInformada = senha.toCharArray(),
+                            hashSalvo = usuario.senhaHash,
+                            saltSalvo = usuario.senhaSalt
+                        )
+                    }
+
+                if (!credenciaisCorretas || usuario == null) {
+                    // A mensagem genérica não revela se o e-mail existe.
+                    binding.tilPassword.error =
+                        getString(R.string.invalid_credentials)
+                    return@launch
+                }
+
+                loginConfirmado(usuario)
+            } catch (_: Exception) {
+                Toast.makeText(
+                    this@MainActivity,
+                    R.string.login_error,
+                    Toast.LENGTH_LONG
+                ).show()
+            } finally {
+                binding.btnEntrar.isEnabled = true
+            }
+        }
+    }
+
+    private fun loginConfirmado(usuario: Usuario) {
+        sessao.registrarLogin(usuario.id)
+        oferecerAtivacaoDaBiometria()
     }
 
     private fun configurarBiometria() {
@@ -88,7 +164,6 @@ class MainActivity : AppCompatActivity() {
             this,
             executor,
             object : BiometricPrompt.AuthenticationCallback() {
-
                 override fun onAuthenticationSucceeded(
                     result: BiometricPrompt.AuthenticationResult
                 ) {
@@ -96,19 +171,18 @@ class MainActivity : AppCompatActivity() {
 
                     Toast.makeText(
                         this@MainActivity,
-                        "Digital reconhecida.",
+                        R.string.biometric_success,
                         Toast.LENGTH_SHORT
                     ).show()
 
-                    entrarNoAplicativo()
+                    validarSessaoBiometrica()
                 }
 
                 override fun onAuthenticationFailed() {
                     super.onAuthenticationFailed()
-
                     Toast.makeText(
                         this@MainActivity,
-                        "Digital não reconhecida. Tente novamente.",
+                        R.string.biometric_failed,
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -117,10 +191,7 @@ class MainActivity : AppCompatActivity() {
                     errorCode: Int,
                     errString: CharSequence
                 ) {
-                    super.onAuthenticationError(
-                        errorCode,
-                        errString
-                    )
+                    super.onAuthenticationError(errorCode, errString)
 
                     if (
                         errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON &&
@@ -137,28 +208,23 @@ class MainActivity : AppCompatActivity() {
         )
 
         promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Entrar no Ergo Peritus")
-            .setSubtitle("Use sua digital para continuar")
+            .setTitle(getString(R.string.biometric_title))
+            .setSubtitle(getString(R.string.biometric_subtitle))
             .setAllowedAuthenticators(
                 BiometricManager.Authenticators.BIOMETRIC_STRONG
             )
-            .setNegativeButtonText("Usar e-mail e senha")
+            .setNegativeButtonText(getString(R.string.use_email_password))
             .build()
     }
 
     private fun verificarBiometriaAoAbrir() {
-        val biometriaAtivada = preferencias.getBoolean(
-            "biometria_ativada",
-            false
-        )
+        val existeUsuarioVinculado = sessao.usuarioId() != null
 
-        if (!biometriaAtivada) {
+        if (!sessao.biometriaAtivada() || !existeUsuarioVinculado) {
             return
         }
 
-        val biometricManager = BiometricManager.from(this)
-
-        val resultado = biometricManager.canAuthenticate(
+        val resultado = BiometricManager.from(this).canAuthenticate(
             BiometricManager.Authenticators.BIOMETRIC_STRONG
         )
 
@@ -167,79 +233,43 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun validarLogin() {
-        val email = binding.etEmail.text
-            .toString()
-            .trim()
+    private fun validarSessaoBiometrica() {
+        val usuarioId = sessao.usuarioId()
 
-        val senha = binding.etPassword.text
-            .toString()
-
-        binding.tilEmail.error = null
-        binding.tilPassword.error = null
-
-        var formularioValido = true
-
-        if (email.isEmpty()) {
-            binding.tilEmail.error =
-                getString(R.string.email_required)
-
-            formularioValido = false
-
-        } else if (
-            !Patterns.EMAIL_ADDRESS.matcher(email).matches()
-        ) {
-            binding.tilEmail.error =
-                getString(R.string.email_invalid)
-
-            formularioValido = false
+        if (usuarioId == null) {
+            sessao.encerrar()
+            return
         }
 
-        if (senha.isEmpty()) {
-            binding.tilPassword.error =
-                getString(R.string.password_required)
+        lifecycleScope.launch {
+            val usuarioAindaExiste = try {
+                usuarioDao.buscarPorId(usuarioId) != null
+            } catch (_: Exception) {
+                false
+            }
 
-            formularioValido = false
-
-        } else if (senha.length < 6) {
-            binding.tilPassword.error =
-                getString(R.string.password_short)
-
-            formularioValido = false
-        }
-
-        if (formularioValido) {
-            realizarLogin(email, senha)
-        }
-    }
-
-    private fun realizarLogin(
-        email: String,
-        senha: String
-    ) {
-        /*
-         * O login ainda é uma simulação.
-         * Depois será substituído pelo serviço de autenticação.
-         */
-        if (email.isNotEmpty() && senha.isNotEmpty()) {
-            oferecerAtivacaoDaBiometria()
+            if (usuarioAindaExiste) {
+                entrarNoAplicativo()
+            } else {
+                // Se banco e preferências ficarem inconsistentes, o acesso
+                // volta ao login em vez de liberar o HUB indevidamente.
+                sessao.encerrar()
+                Toast.makeText(
+                    this@MainActivity,
+                    R.string.session_invalid,
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
     }
 
     private fun oferecerAtivacaoDaBiometria() {
-        val biometriaJaAtivada = preferencias.getBoolean(
-            "biometria_ativada",
-            false
-        )
-
-        if (biometriaJaAtivada) {
+        if (sessao.biometriaAtivada()) {
             entrarNoAplicativo()
             return
         }
 
-        val biometricManager = BiometricManager.from(this)
-
-        val resultado = biometricManager.canAuthenticate(
+        val resultado = BiometricManager.from(this).canAuthenticate(
             BiometricManager.Authenticators.BIOMETRIC_STRONG
         )
 
@@ -249,43 +279,20 @@ class MainActivity : AppCompatActivity() {
         }
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("Ativar entrada por digital?")
-            .setMessage(
-                "Nos próximos acessos, você poderá entrar sem digitar seu e-mail e senha."
-            )
-            .setPositiveButton("Ativar") { _, _ ->
-
-                preferencias.edit()
-                    .putBoolean(
-                        "biometria_ativada",
-                        true
-                    )
-                    .apply()
-
+            .setTitle(R.string.enable_biometric_title)
+            .setMessage(R.string.enable_biometric_message)
+            .setPositiveButton(R.string.enable) { _, _ ->
+                sessao.ativarBiometria()
                 entrarNoAplicativo()
             }
-            .setNegativeButton("Agora não") { _, _ ->
+            .setNegativeButton(R.string.not_now) { _, _ ->
                 entrarNoAplicativo()
             }
             .show()
     }
 
-    /*
-     * Abre o HUB depois do login com senha
-     * ou da autenticação biométrica.
-     */
     private fun entrarNoAplicativo() {
-        val intent = Intent(
-            this,
-            HubActivity::class.java
-        )
-
-        startActivity(intent)
-
-        /*
-         * Fecha a tela de login para que o botão Voltar
-         * não retorne ao login depois da autenticação.
-         */
+        startActivity(Intent(this, HubActivity::class.java))
         finish()
     }
 }

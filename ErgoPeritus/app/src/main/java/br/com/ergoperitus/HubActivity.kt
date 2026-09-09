@@ -6,17 +6,15 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
 import br.com.ergoperitus.databinding.ActivityHubBinding
+import br.com.ergoperitus.seguranca.SessaoUsuario
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class HubActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHubBinding
 
-    private val preferencias by lazy {
-        getSharedPreferences(
-            "seguranca_ergo_peritus",
-            MODE_PRIVATE
-        )
+    private val sessao by lazy {
+        SessaoUsuario(applicationContext)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -136,12 +134,7 @@ class HubActivity : AppCompatActivity() {
          * Um logout completo desativa a biometria.
          * O usuário deverá utilizar e-mail e senha novamente.
          */
-        preferencias.edit()
-            .putBoolean(
-                "biometria_ativada",
-                false
-            )
-            .apply()
+        sessao.encerrar()
 
         /*
          * Retorna para o login e remove as telas anteriores

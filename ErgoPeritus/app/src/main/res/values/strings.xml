@@ -46,6 +46,27 @@
     <string name="confirm_password_required">Confirme sua senha</string>
     <string name="passwords_different">As senhas não são iguais</string>
 
+    <!-- Cadastro e autenticação local. -->
+    <string name="email_already_registered">Este e-mail já está cadastrado</string>
+    <string name="register_error">Não foi possível concluir o cadastro. Tente novamente.</string>
+    <string name="register_success">Cadastro de %1$s realizado com sucesso.</string>
+    <string name="register_complete_login">Cadastro concluído. Digite sua senha para entrar.</string>
+    <string name="invalid_credentials">E-mail ou senha incorretos</string>
+    <string name="login_error">Não foi possível consultar o cadastro. Tente novamente.</string>
+    <string name="session_invalid">Sua sessão local não pôde ser confirmada. Entre novamente.</string>
+    <string name="password_recovery_later">A recuperação de senha será implementada posteriormente.</string>
+
+    <!-- Biometria. -->
+    <string name="biometric_title">Entrar no Ergo Peritus</string>
+    <string name="biometric_subtitle">Use sua digital para continuar</string>
+    <string name="use_email_password">Usar e-mail e senha</string>
+    <string name="biometric_success">Digital reconhecida.</string>
+    <string name="biometric_failed">Digital não reconhecida. Tente novamente.</string>
+    <string name="enable_biometric_title">Ativar entrada por digital?</string>
+    <string name="enable_biometric_message">Nos próximos acessos, você poderá entrar sem digitar seu e-mail e senha.</string>
+    <string name="enable">Ativar</string>
+    <string name="not_now">Agora não</string>
+
     <!-- Tela HUB. -->
     <string name="hub_app_description">Avaliação Ergonômica</string>
     <string name="hub_question">O que deseja fazer?</string>

@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -45,6 +46,13 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+
+    // O Room será o banco local do aplicativo. Ele continuará funcionando
+    // mesmo quando o celular estiver sem internet.
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
     // Biblioteca utilizada para autenticação biométrica.
     implementation("androidx.biometric:biometric:1.1.0")
@@ -52,4 +60,5 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation("androidx.room:room-testing:2.8.4")
 }
