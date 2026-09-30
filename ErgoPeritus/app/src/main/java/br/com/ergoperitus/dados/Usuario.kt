@@ -32,5 +32,11 @@ data class Usuario(
     val senhaSalt: String,
 
     @ColumnInfo(name = "criado_em")
-    val criadoEm: Long = System.currentTimeMillis()
+    val criadoEm: Long = System.currentTimeMillis(),
+
+    @ColumnInfo(name = "recuperacao_hash")
+    val recuperacaoHash: String? = null,
+
+    @ColumnInfo(name = "recuperacao_salt")
+    val recuperacaoSalt: String? = null
 )

@@ -38,16 +38,10 @@ class HubActivity : AppCompatActivity() {
             mostrarMenuUsuario()
         }
 
-        /*
-         * Os três botões já respondem ao toque.
-         * As telas correspondentes serão criadas posteriormente.
-         */
         binding.btnNovaAvaliacao.setOnClickListener {
-            Toast.makeText(
-                this,
-                getString(R.string.new_evaluation_coming_soon),
-                Toast.LENGTH_SHORT
-            ).show()
+            startActivity(
+                Intent(this, CadastroEventoActivity::class.java)
+            )
         }
 
         binding.btnContinuarAvaliacao.setOnClickListener {
@@ -106,15 +100,9 @@ class HubActivity : AppCompatActivity() {
     }
 
     private fun abrirMeuCadastro() {
-        /*
-         * Não reutilizamos a tela de criação de conta,
-         * porque futuramente esta opção será uma tela de edição.
-         */
-        Toast.makeText(
-            this,
-            getString(R.string.profile_coming_soon),
-            Toast.LENGTH_SHORT
-        ).show()
+        startActivity(
+            Intent(this, MeuCadastroActivity::class.java)
+        )
     }
 
     private fun confirmarSaida() {

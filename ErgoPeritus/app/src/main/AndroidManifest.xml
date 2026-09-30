@@ -40,6 +40,17 @@
             </intent-filter>
 
         </activity>
+        <activity
+            android:name=".MeuCadastroActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".RecuperarSenhaActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".CadastroEventoActivity"
+            android:exported="false" />
 
     </application>
 

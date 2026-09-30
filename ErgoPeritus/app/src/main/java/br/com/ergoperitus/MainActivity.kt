@@ -75,11 +75,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.tvForgotPassword.setOnClickListener {
-            Toast.makeText(
-                this,
-                R.string.password_recovery_later,
-                Toast.LENGTH_LONG
-            ).show()
+            startActivity(
+                Intent(this, RecuperarSenhaActivity::class.java)
+            )
         }
     }
 
