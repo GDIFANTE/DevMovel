@@ -5,9 +5,13 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
+import androidx.lifecycle.lifecycleScope
+import br.com.ergoperitus.dados.ErgoPeritusDatabase
 import br.com.ergoperitus.databinding.ActivityHubBinding
 import br.com.ergoperitus.seguranca.SessaoUsuario
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 
 class HubActivity : AppCompatActivity() {
 
@@ -17,23 +21,27 @@ class HubActivity : AppCompatActivity() {
         SessaoUsuario(applicationContext)
     }
 
+    private val banco by lazy {
+        ErgoPeritusDatabase.obter(applicationContext)
+    }
+
+    private var carregandoAvaliacoes = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        /*
-         * Monta a interface definida em activity_hub.xml.
-         */
         binding = ActivityHubBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        if (sessao.usuarioId() == null) {
+            sairDoAplicativo()
+            return
+        }
 
         configurarEventos()
     }
 
     private fun configurarEventos() {
-
-        /*
-         * Abre o pequeno menu ancorado no botão do usuário.
-         */
         binding.btnUsuario.setOnClickListener {
             mostrarMenuUsuario()
         }
@@ -45,11 +53,7 @@ class HubActivity : AppCompatActivity() {
         }
 
         binding.btnContinuarAvaliacao.setOnClickListener {
-            Toast.makeText(
-                this,
-                getString(R.string.no_evaluation_in_progress),
-                Toast.LENGTH_SHORT
-            ).show()
+            mostrarAvaliacoes()
         }
 
         binding.btnHistorico.setOnClickListener {
@@ -61,26 +65,92 @@ class HubActivity : AppCompatActivity() {
         }
     }
 
+    private fun mostrarAvaliacoes() {
+        if (carregandoAvaliacoes) return
+
+        val usuarioId = sessao.usuarioId()
+
+        if (usuarioId == null) {
+            sairDoAplicativo()
+            return
+        }
+
+        carregandoAvaliacoes = true
+        binding.btnContinuarAvaliacao.isEnabled = false
+
+        lifecycleScope.launch {
+            try {
+                val eventos = banco.eventoDao()
+                    .listarPorUsuario(usuarioId)
+
+                if (eventos.isEmpty()) {
+                    Toast.makeText(
+                        this@HubActivity,
+                        "Nenhuma avaliação cadastrada. " +
+                                "Comece em Nova avaliação.",
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                    return@launch
+                }
+
+                val opcoes = eventos.map { evento ->
+                    "${evento.processo}\n" +
+                            "${evento.reclamante} × ${evento.reclamada}"
+                }.toTypedArray()
+
+                MaterialAlertDialogBuilder(this@HubActivity)
+                    .setTitle("Escolha a avaliação")
+                    .setItems(opcoes) { _, posicao ->
+                        val evento = eventos[posicao]
+
+                        startActivity(
+                            Intent(
+                                this@HubActivity,
+                                AvaliacaoActivity::class.java
+                            ).apply {
+                                putExtra(
+                                    AvaliacaoActivity.EXTRA_EVENTO_ID,
+                                    evento.id
+                                )
+                            }
+                        )
+                    }
+                    .setNegativeButton("Cancelar", null)
+                    .show()
+
+            } catch (erro: CancellationException) {
+                throw erro
+            } catch (_: Exception) {
+                Toast.makeText(
+                    this@HubActivity,
+                    "Não foi possível carregar as avaliações.",
+                    Toast.LENGTH_LONG
+                ).show()
+            } finally {
+                carregandoAvaliacoes = false
+                binding.btnContinuarAvaliacao.isEnabled = true
+            }
+        }
+    }
+
     private fun mostrarMenuUsuario() {
         val menuUsuario = PopupMenu(
             this,
             binding.btnUsuario
         )
 
-        /*
-         * Carrega as opções definidas em menu_usuario.xml.
-         */
         menuUsuario.menuInflater.inflate(
             R.menu.menu_usuario,
             menuUsuario.menu
         )
 
         menuUsuario.setOnMenuItemClickListener { item ->
-
             when (item.itemId) {
-
                 R.id.menu_meu_cadastro -> {
-                    abrirMeuCadastro()
+                    startActivity(
+                        Intent(this, MeuCadastroActivity::class.java)
+                    )
                     true
                 }
 
@@ -93,16 +163,7 @@ class HubActivity : AppCompatActivity() {
             }
         }
 
-        /*
-         * Mostra o menu ao lado do botão do usuário.
-         */
         menuUsuario.show()
-    }
-
-    private fun abrirMeuCadastro() {
-        startActivity(
-            Intent(this, MeuCadastroActivity::class.java)
-        )
     }
 
     private fun confirmarSaida() {
@@ -117,27 +178,15 @@ class HubActivity : AppCompatActivity() {
     }
 
     private fun sairDoAplicativo() {
-
-        /*
-         * Um logout completo desativa a biometria.
-         * O usuário deverá utilizar e-mail e senha novamente.
-         */
         sessao.encerrar()
 
-        /*
-         * Retorna para o login e remove as telas anteriores
-         * da pilha de navegação.
-         */
-        val intent = Intent(
-            this,
-            MainActivity::class.java
-        ).apply {
-            flags =
-                Intent.FLAG_ACTIVITY_NEW_TASK or
+        startActivity(
+            Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or
                         Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
+            }
+        )
 
-        startActivity(intent)
         finish()
     }
 }

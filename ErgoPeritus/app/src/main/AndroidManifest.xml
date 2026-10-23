@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Permissões para utilizar a biometria. -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
     <uses-permission
@@ -16,18 +15,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ErgoPeritus">
 
-        <!-- Tela principal apresentada após o login. -->
         <activity
             android:name=".HubActivity"
             android:exported="false" />
 
-        <!-- Tela de cadastro de usuário. -->
         <activity
             android:name=".CadastroActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
-        <!-- Tela inicial de login. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -35,21 +31,53 @@
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
         </activity>
+
         <activity
             android:name=".MeuCadastroActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".RecuperarSenhaActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".CadastroEventoActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".AvaliacaoActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ChecklistOcraActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ForcaOcraActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".PosturaOcraActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ComplementaresOcraActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ResultadoOcraActivity"
             android:exported="false" />
 
     </application>

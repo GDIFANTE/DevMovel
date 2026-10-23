@@ -37,6 +37,9 @@ class CadastroEventoActivity : AppCompatActivity() {
     private var dataSelecionada: String? = null
     private var salvando = false
 
+    // Permite tentar abrir novamente sem cadastrar outra capa.
+    private var eventoSalvoId: Long? = null
+
     private data class CampoFuncao(
         val linha: LinearLayout,
         val layout: TextInputLayout,
@@ -51,6 +54,10 @@ class CadastroEventoActivity : AppCompatActivity() {
 
         binding = ActivityCadastroEventoBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        eventoSalvoId = savedInstanceState
+            ?.getLong("evento_salvo_id")
+            ?.takeIf { it > 0L }
 
         binding.btnAdicionarFuncao.setOnClickListener {
             adicionarFuncao()
@@ -68,18 +75,23 @@ class CadastroEventoActivity : AppCompatActivity() {
             finish()
         }
 
-        // Preserva as funções e a data se a tela for recriada.
         val funcoesSalvas = savedInstanceState
             ?.getStringArrayList("funcoes")
 
         if (funcoesSalvas.isNullOrEmpty()) {
             adicionarFuncao()
         } else {
-            funcoesSalvas.forEach { adicionarFuncao(it) }
+            funcoesSalvas.forEach {
+                adicionarFuncao(it)
+            }
         }
 
         dataSelecionada = savedInstanceState?.getString("data")
         atualizarDataNaTela()
+
+        if (eventoSalvoId != null) {
+            bloquearCapaSalva()
+        }
 
         verificarUsuario()
     }
@@ -116,6 +128,7 @@ class CadastroEventoActivity : AppCompatActivity() {
 
         val linha = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
+
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -134,9 +147,8 @@ class CadastroEventoActivity : AppCompatActivity() {
         val campo = TextInputEditText(layout.context).apply {
             inputType = InputType.TYPE_CLASS_TEXT or
                     InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
-            setSingleLine(true)
 
-            // Os valores serão preservados manualmente no Bundle.
+            setSingleLine(true)
             isSaveEnabled = false
             setText(nome)
 
@@ -152,6 +164,7 @@ class CadastroEventoActivity : AppCompatActivity() {
             com.google.android.material.R.attr.materialButtonOutlinedStyle
         ).apply {
             text = "Remover função"
+
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -165,7 +178,11 @@ class CadastroEventoActivity : AppCompatActivity() {
         val item = CampoFuncao(linha, layout, campo, remover)
 
         remover.setOnClickListener {
-            if (!salvando && camposFuncoes.size > 1) {
+            if (
+                !salvando &&
+                eventoSalvoId == null &&
+                camposFuncoes.size > 1
+            ) {
                 camposFuncoes.remove(item)
                 binding.containerFuncoes.removeView(linha)
                 atualizarRotulosFuncoes()
@@ -180,13 +197,18 @@ class CadastroEventoActivity : AppCompatActivity() {
     private fun atualizarRotulosFuncoes() {
         camposFuncoes.forEachIndexed { indice, item ->
             item.layout.hint = "Função ${indice + 1}"
+
             item.remover.visibility =
-                if (camposFuncoes.size > 1) View.VISIBLE else View.GONE
+                if (camposFuncoes.size > 1) {
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
         }
     }
 
     private fun escolherData() {
-        if (salvando) return
+        if (salvando || eventoSalvoId != null) return
 
         val calendario = Calendar.getInstance()
 
@@ -229,7 +251,13 @@ class CadastroEventoActivity : AppCompatActivity() {
 
     private fun validarESalvar() {
         if (salvando) return
+
         val id = usuarioId ?: return
+
+        eventoSalvoId?.let {
+            abrirAvaliacao(it)
+            return
+        }
 
         val processo = binding.etProcesso.text.toString().trim()
         val vara = binding.etVara.text.toString().trim()
@@ -270,7 +298,8 @@ class CadastroEventoActivity : AppCompatActivity() {
             val nome = item.campo.text.toString().trim()
 
             if (nome.isEmpty()) {
-                item.layout.error = "Informe a função ou remova este campo."
+                item.layout.error =
+                    "Informe a função ou remova este campo."
                 valido = false
             }
 
@@ -297,41 +326,105 @@ class CadastroEventoActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                banco.eventoDao().salvarComFuncoes(evento, funcoes)
+                val eventoId = banco.eventoDao()
+                    .salvarComFuncoes(evento, funcoes)
 
-                mostrarMensagem("Evento cadastrado com sucesso.")
+                eventoSalvoId = eventoId
+                bloquearCapaSalva()
+
+                mostrarMensagem("Capa da avaliação cadastrada.")
                 setResult(RESULT_OK)
-                finish()
+
+                abrirAvaliacao(eventoId)
 
             } catch (erro: CancellationException) {
                 throw erro
             } catch (_: Exception) {
-                mostrarMensagem("Não foi possível salvar o evento. Tente novamente.")
+                mostrarMensagem(
+                    "Não foi possível salvar a capa. Tente novamente."
+                )
             } finally {
                 definirSalvando(false)
             }
         }
     }
 
-    private fun definirSalvando(valor: Boolean) {
-        salvando = valor
+    private fun abrirAvaliacao(eventoId: Long) {
+        try {
+            startActivity(
+                Intent(this, AvaliacaoActivity::class.java).apply {
+                    putExtra(
+                        AvaliacaoActivity.EXTRA_EVENTO_ID,
+                        eventoId
+                    )
+                }
+            )
 
-        binding.btnSalvarEvento.isEnabled = !valor && usuarioId != null
-        binding.btnAdicionarFuncao.isEnabled = !valor
-        binding.btnVoltar.isEnabled = !valor
+            finish()
+
+        } catch (_: Exception) {
+            mostrarMensagem(
+                "A capa está salva, mas não foi possível abrir " +
+                        "as atividades. Tente novamente."
+            )
+        }
+    }
+
+    private fun bloquearCapaSalva() {
+        binding.btnSalvarEvento.text = "Abrir atividades"
+
+        binding.etProcesso.isEnabled = false
+        binding.etVara.isEnabled = false
+        binding.etReclamante.isEnabled = false
+        binding.etReclamada.isEnabled = false
+        binding.etData.isEnabled = false
+
+        binding.btnAdicionarFuncao.isEnabled = false
 
         camposFuncoes.forEach {
-            it.remover.isEnabled = !valor
+            it.campo.isEnabled = false
+            it.remover.isEnabled = false
+        }
+    }
+
+    private fun definirSalvando(valor: Boolean) {
+        salvando = valor
+        val editavel = !valor && eventoSalvoId == null
+
+        binding.btnSalvarEvento.isEnabled =
+            !valor && usuarioId != null
+
+        binding.btnAdicionarFuncao.isEnabled = editavel
+        binding.btnVoltar.isEnabled = !valor
+
+        binding.etProcesso.isEnabled = editavel
+        binding.etVara.isEnabled = editavel
+        binding.etReclamante.isEnabled = editavel
+        binding.etReclamada.isEnabled = editavel
+        binding.etData.isEnabled = editavel
+
+        camposFuncoes.forEach {
+            it.campo.isEnabled = editavel
+            it.remover.isEnabled = editavel
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putStringArrayList(
             "funcoes",
-            ArrayList(camposFuncoes.map { it.campo.text.toString() })
+            ArrayList(
+                camposFuncoes.map {
+                    it.campo.text.toString()
+                }
+            )
         )
 
         outState.putString("data", dataSelecionada)
+
+        eventoSalvoId?.let {
+            outState.putLong("evento_salvo_id", it)
+        }
+
         super.onSaveInstanceState(outState)
     }
 

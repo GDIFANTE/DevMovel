@@ -20,6 +20,8 @@ import java.util.Locale
 import android.widget.TextView
 import br.com.ergoperitus.seguranca.CodigoRecuperacao
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import android.content.ClipData
+import android.content.ClipboardManager
 
 class MeuCadastroActivity : AppCompatActivity() {
 
@@ -327,11 +329,35 @@ class MeuCadastroActivity : AppCompatActivity() {
             setTextIsSelectable(true)
         }
 
-        MaterialAlertDialogBuilder(this)
+        val dialogo = MaterialAlertDialogBuilder(this)
             .setTitle("Seu código de recuperação")
             .setView(textoCodigo)
+            .setNeutralButton("Copiar código", null)
             .setPositiveButton("Guardei o código", null)
             .setCancelable(false)
-            .show()
+            .create()
+
+        dialogo.setOnShowListener {
+            // Configurado aqui para copiar sem fechar a janela.
+            dialogo.getButton(
+                android.content.DialogInterface.BUTTON_NEUTRAL
+            ).setOnClickListener {
+                val clipboard = getSystemService(
+                    CLIPBOARD_SERVICE
+                ) as ClipboardManager
+
+                clipboard.setPrimaryClip(
+                    ClipData.newPlainText("Código de recuperação", codigo)
+                )
+
+                Toast.makeText(
+                    this,
+                    "Código copiado!",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+        dialogo.show()
     }
 }
